@@ -1,12 +1,12 @@
 # OPS345 AWS Cloud Infrastructure Project
 
-AWS cloud infrastructure project demonstrating Linux administration, networking, storage management, web services, automation, load balancing, and disaster recovery using Amazon Linux and AWS.
+AWS cloud infrastructure project demonstrating Linux administration, networking, storage management, web services, DNS, HTTPS/TLS, automation, load balancing, and disaster recovery using Amazon Linux and AWS.
 
 ## Overview
 
-This repository documents the design, deployment, security, storage management, application hosting, automation, and load balancing of a multi-server cloud environment built in Amazon Web Services (AWS) as part of the OPS345 course.
+This repository documents the design, deployment, security, storage management, application hosting, DNS configuration, HTTPS implementation, automation, and load balancing of a multi-server cloud environment built in Amazon Web Services (AWS) as part of the OPS345 course.
 
-The project progresses from foundational AWS infrastructure through networking, persistent storage, application deployment, and multi-server web architecture.
+The project progresses from foundational AWS infrastructure through networking, persistent storage, application deployment, DNS, HTTPS/TLS security, and multi-server web architecture.
 
 The environment includes:
 
@@ -20,6 +20,14 @@ The environment includes:
 * Apache and PHP web services
 * Amazon RDS / MariaDB
 * Nextcloud deployment
+* DNS configuration
+* AWS Route 53
+* DNS A, CNAME, and TXT records
+* Let's Encrypt SSL/TLS certificates
+* Certbot DNS validation
+* Apache HTTPS configuration
+* HTTP-to-HTTPS redirection
+* HTTPS port forwarding using iptables
 * Amazon Machine Images (AMI)
 * Multiple synchronized web servers
 * SSH key-based server-to-server authentication
@@ -32,30 +40,37 @@ The environment includes:
 
 The environment was progressively expanded throughout the labs and Assignment 1.
 
-The final web architecture includes:
+The web architecture includes:
 
 ```text
                          Internet
                             |
                             v
-                 +--------------------+
-                 |   Router / Load    |
-                 |      Balancer      |
-                 |    10.3.45.10      |
-                 |      iptables      |
-                 +---------+----------+
-                           |
-             +-------------+-------------+-------------+
-             |             |             |             |
-             v             v             v             v
-        +---------+   +---------+   +---------+   +---------+
-        |   www   |   | slave1  |   | slave2  |   | slave3  |
-        |.45.11   |   |.45.21   |   |.45.22   |   |.45.23   |
-        +---------+   +---------+   +---------+   +---------+
-             \             |             |             /
-              \____________|_____________|____________/
-                           |
-                    Synchronized Web
+                  +--------------------+
+                  |   Route 53 DNS     |
+                  |     otere.org      |
+                  +---------+----------+
+                            |
+                            v
+                  +--------------------+
+                  |  Router / Load     |
+                  |     Balancer       |
+                  |    10.3.45.10      |
+                  |     iptables       |
+                  |   HTTP / HTTPS     |
+                  +---------+----------+
+                            |
+              +-------------+-------------+-------------+
+              |             |             |             |
+              v             v             v             v
+         +---------+   +---------+   +---------+   +---------+
+         |   www   |   | slave1  |   | slave2  |   | slave3  |
+         | .45.11  |   | .45.21  |   | .45.22  |   | .45.23  |
+         +---------+   +---------+   +---------+   +---------+
+              \             |             |             /
+               \____________|_____________|____________/
+                            |
+                     Synchronized Web
                          Content
 ```
 
@@ -73,6 +88,8 @@ The final web architecture includes:
 * Security Groups
 * Amazon EBS persistent storage
 * Amazon RDS database services
+* Route 53 DNS
+* Let's Encrypt TLS certificates
 
 ## Labs Completed
 
@@ -113,6 +130,34 @@ The final web architecture includes:
 * Configured database users and permissions
 * Configured application storage
 * Verified successful web application deployment
+
+### Lab 5 – DNS Configuration
+
+* Configured DNS for the AWS-hosted environment
+* Used the `otere.org` domain with AWS Route 53
+* Configured DNS A records
+* Configured CNAME records
+* Verified DNS resolution using `dig`
+* Connected the domain name to the existing web infrastructure
+* Verified Nextcloud access using the configured domain name
+
+### Lab 6 – HTTPS and SSL/TLS Certificates
+
+* Installed and configured Certbot
+* Requested a trusted TLS certificate from Let's Encrypt
+* Used DNS TXT validation to prove domain ownership
+* Verified the `_acme-challenge` TXT record using `dig`
+* Installed Apache `mod_ssl`
+* Configured Apache with the Let's Encrypt certificate and private key
+* Configured HTTPS on TCP port 443
+* Configured iptables DNAT forwarding for HTTPS
+* Configured AWS Security Groups for HTTPS traffic
+* Verified Apache was listening on TCP 443 using `ss`
+* Tested HTTPS connectivity using `curl`
+* Troubleshot HTTPS traffic using `tcpdump`
+* Identified and corrected a missing router Security Group rule for TCP 443
+* Verified secure Nextcloud access over HTTPS
+* Configured an HTTP 301 redirect to automatically send HTTP traffic to HTTPS
 
 ## Assignments
 
@@ -161,6 +206,14 @@ ops345-aws-cloud-infrastructure/
 │   ├── README.md
 │   └── screenshots/
 │
+├── Lab5-DNS/
+│   ├── README.md
+│   └── screenshots/
+│
+├── Lab6-HTTPS-SSL-Certificates/
+│   ├── README.md
+│   └── screenshots/
+│
 ├── Assignment1-Web-Server-Load-Balancing/
 │   ├── README.md
 │   ├── screenshots/
@@ -184,6 +237,7 @@ ops345-aws-cloud-infrastructure/
 * Amazon EBS
 * Amazon Machine Images (AMI)
 * Amazon RDS
+* Amazon Route 53
 
 ### Linux Administration
 
@@ -198,6 +252,8 @@ ops345-aws-cloud-infrastructure/
 * rsync
 * curl
 * iptables
+* tcpdump
+* Apache administration
 
 ### Networking
 
@@ -211,6 +267,18 @@ ops345-aws-cloud-infrastructure/
 * Security-group configuration
 * Multi-server networking
 * HTTP traffic distribution
+* HTTPS / TCP 443
+* DNS resolution
+
+### DNS
+
+* AWS Route 53
+* DNS A records
+* CNAME records
+* TXT records
+* DNS ownership validation
+* `dig` DNS troubleshooting
+* Fully Qualified Domain Names (FQDN)
 
 ### Web and Database Services
 
@@ -219,6 +287,21 @@ ops345-aws-cloud-infrastructure/
 * MariaDB
 * Amazon RDS
 * Nextcloud
+* HTTP
+* HTTPS
+
+### Security and TLS
+
+* SSL/TLS certificates
+* Let's Encrypt
+* Certbot
+* DNS certificate validation
+* Apache `mod_ssl`
+* Public/private key concepts
+* HTTPS configuration
+* HTTP-to-HTTPS redirection
+* Security Group configuration
+* TLS troubleshooting
 
 ### Automation and Testing
 
@@ -241,11 +324,18 @@ ops345-aws-cloud-infrastructure/
 * rsync synchronization
 * EC2 Instance Metadata Service (IMDSv2)
 * iptables load-balancing rules
+* DNS resolution
+* Apache SSL configuration
+* TCP port troubleshooting
+* HTTPS connectivity
+* Network packet analysis using `tcpdump`
 
 ## Project Outcome
 
-The project evolved from a basic AWS Linux environment into a multi-server web architecture with persistent storage, database services, automated content synchronization, and Linux-based load balancing.
+The project evolved from a basic AWS Linux environment into a multi-server cloud architecture with private networking, persistent storage, database services, DNS, secure HTTPS communication, automated content synchronization, and Linux-based load balancing.
 
-The completed Assignment 1 environment distributes HTTP traffic across four EC2 web servers while rsync and cron help maintain consistent web content across the servers. A Python load-testing script was used to validate that requests were reaching each backend server.
+DNS was configured to provide domain-based access to the AWS-hosted services. HTTPS was then implemented using a trusted Let's Encrypt TLS certificate, with Apache configured to provide encrypted communication over TCP port 443. HTTP requests are automatically redirected to HTTPS.
 
-This repository demonstrates hands-on experience with AWS infrastructure, Linux systems administration, networking, automation, troubleshooting, and scalable web architecture.
+The Assignment 1 environment further expanded the architecture by distributing HTTP traffic across four EC2 web servers while rsync and cron maintain consistent web content across the servers. A Python load-testing script was used to validate traffic distribution across the backend servers.
+
+This repository demonstrates hands-on experience with AWS infrastructure, Linux systems administration, networking, DNS, SSL/TLS security, web services, automation, troubleshooting, and scalable cloud architecture.
